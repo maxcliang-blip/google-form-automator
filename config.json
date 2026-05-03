@@ -1,11 +1,7 @@
 {
-  "form_url": "YOUR_GOOGLE_FORM_URL_HERE",
+  "form_url": "https://docs.google.com/forms/d/e/1FAIpQLSc74hNLDykqQnTUeJk7gY9pGrhqF1-V4IQi8_xnpgs9_40MKg/viewform",
   "fields": {
-    "field_name_1": "value_1",
-    "field_name_2": "value_2"
-  },
-  "schedule": {
-    "time": "07:30",
-    "timezone": "America/New_York"
+    "What is your name?": "Max Liang",
+    "What team are you on?": "Gold"
   }
 }
