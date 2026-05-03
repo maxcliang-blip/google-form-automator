@@ -1,0 +1,11 @@
+{
+  "form_url": "YOUR_GOOGLE_FORM_URL_HERE",
+  "fields": {
+    "field_name_1": "value_1",
+    "field_name_2": "value_2"
+  },
+  "schedule": {
+    "time": "07:30",
+    "timezone": "America/New_York"
+  }
+}
