@@ -1,58 +1,43 @@
 import json
-import time
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+from playwright.sync_api import sync_playwright
 
 def load_config():
     with open("config.json", "r") as f:
         return json.load(f)
 
-def setup_driver():
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+def fill_form(config):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        
+        page.goto(config["form_url"])
+        page.wait_for_load_state("networkidle")
 
-def fill_form(driver, config):
-    driver.get(config["form_url"])
-    time.sleep(2)
+        fields = config.get("fields", {})
+        for field_name, value in fields.items():
+            try:
+                label = page.locator(f"label:has-text('{field_name}')").first
+                if label.count() > 0:
+                    container = label.locator("xpath=ancestor::div[contains(@class, 'quantumWizTextinputPaperinputContainer')]")
+                    input_field = container.locator("input")
+                    if input_field.count() > 0:
+                        input_field.fill(value)
+                        continue
 
-    fields = config.get("fields", {})
-    for field_name, value in fields.items():
+                inputs = page.locator(f"input[name='{field_name}']")
+                if inputs.count() > 0:
+                    inputs.first.fill(value)
+            except Exception as e:
+                print(f"Error filling field {field_name}: {e}")
+
         try:
-            inputs = driver.find_elements(By.NAME, field_name)
-            if inputs:
-                inputs[0].send_keys(value)
-                continue
-
-            labels = driver.find_elements(By.XPATH, f"//label[contains(text(), '{field_name}')]")
-            if labels:
-                label = labels[0]
-                container = label.find_element(By.XPATH, "./ancestor::div[contains(@class, 'freebirdFormviewerViewItemsItem')]")
-                input_field = container.find_element(By.TAG_NAME, "input")
-                input_field.send_keys(value)
+            page.click("button:has-text('Submit')")
+            print("Form submitted successfully!")
         except Exception as e:
-            print(f"Error filling field {field_name}: {e}")
+            print(f"Error submitting form: {e}")
 
-    try:
-        submit_btn = driver.find_element(By.XPATH, "//span[text()='Submit']/ancestor::button")
-        submit_btn.click()
-        print("Form submitted successfully!")
-    except Exception as e:
-        print(f"Error submitting form: {e}")
-
-def main():
-    config = load_config()
-    driver = setup_driver()
-    try:
-        fill_form(driver, config)
-    finally:
-        driver.quit()
+        browser.close()
 
 if __name__ == "__main__":
-    main()
+    config = load_config()
+    fill_form(config)
